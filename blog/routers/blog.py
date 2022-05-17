@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException
-from .. import schemas, models, database
+from .. import schemas, models, database, oauth2
 from sqlalchemy.orm import Session
 
 router = APIRouter(
@@ -8,9 +8,10 @@ router = APIRouter(
 )
 
 
-@router.get('/',
-            response_model=list[schemas.ShowBlog])
-def read_blogs(db: Session = Depends(database.get_db)):
+@router.get('/', response_model=list[schemas.ShowBlog])
+def read_blogs(db: Session = Depends(database.get_db),
+               current_user: schemas.User = Depends(
+                   oauth2.get_current_user)):
     blogs = db.query(models.Blog).all()
     return blogs
 
@@ -19,7 +20,9 @@ def read_blogs(db: Session = Depends(database.get_db)):
             response_model=schemas.ShowBlog,
             status_code=status.HTTP_200_OK
             )
-def read_blog(blog_id: int, db: Session = Depends(database.get_db)):
+def read_blog(blog_id: int, db: Session = Depends(database.get_db),
+              current_user: schemas.User = Depends(
+                  oauth2.get_current_user)):
     blog = db.query(models.Blog).filter(models.Blog.id == blog_id).first()
     if not blog:
         raise HTTPException(
@@ -32,7 +35,9 @@ def read_blog(blog_id: int, db: Session = Depends(database.get_db)):
 @router.post('/',
              status_code=status.HTTP_201_CREATED
              )
-def create_blog(request: schemas.Blog, db: Session = Depends(database.get_db)):
+def create_blog(request: schemas.Blog, db: Session = Depends(database.get_db),
+                current_user: schemas.User = Depends(
+                    oauth2.get_current_user)):
     new_blog = models.Blog(title=request.title, text=request.text, owner_id=1)
     db.add(new_blog)
     db.commit()
@@ -44,7 +49,9 @@ def create_blog(request: schemas.Blog, db: Session = Depends(database.get_db)):
             status_code=status.HTTP_202_ACCEPTED,
             )
 def put_blog(blog_id, request: schemas.Blog,
-             db: Session = Depends(database.get_db)):
+             db: Session = Depends(database.get_db),
+             current_user: schemas.User = Depends(
+                 oauth2.get_current_user)):
     blog = db.query(models.Blog).filter(models.Blog.id == blog_id)
     if not blog.first():
         raise HTTPException(
@@ -59,7 +66,9 @@ def put_blog(blog_id, request: schemas.Blog,
 @router.delete('/{blog_id}',
                status_code=status.HTTP_204_NO_CONTENT,
                )
-def delete_blog(blog_id: int, db: Session = Depends(database.get_db)):
+def delete_blog(blog_id: int, db: Session = Depends(database.get_db),
+                current_user: schemas.User = Depends(
+                    oauth2.get_current_user)):
     blog = db.query(models.Blog).filter(models.Blog.id == blog_id).delete(
         synchronize_session=False)
     if not blog:
