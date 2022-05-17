@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from . import models
-from .database import engine
-from .routers import blog, user, authentication
+from app_db import models
+from app_db.database import engine
+from routers import blog, authentication, user
 
 app = FastAPI()
 
@@ -16,4 +16,3 @@ app.include_router(user.router)
 @app.get('/')
 def root():
     return {'status': 'ok'}
-

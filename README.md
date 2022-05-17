@@ -13,5 +13,5 @@ Fast API find one's feet
 - python-jose
 
 
-time: skip 3.07 ~
-time: 3.36 23
+
+time: 3.16
