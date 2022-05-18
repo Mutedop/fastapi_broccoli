@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 
-import blogs.schemas
 from app_db import database, models
 from blogs.schemas import Blog, ShowBlog
-from users.schemas import User
 from login import oauth2
+from users.schemas import User
 
 router = APIRouter(
     prefix='/blogs',
@@ -43,7 +42,7 @@ def read_blog(blog_id: int, db: Session = Depends(database.get_db),
 def create_blog(request: Blog, db: Session = Depends(database.get_db),
                 current_user: User = Depends(
                     oauth2.get_current_user)):
-    new_blog = models.Blog(title=request.title, text=request.text, owner_id=1)
+    new_blog = models.Blog(title=request.title, text=request.text, user_id=current_user)
     db.add(new_blog)
     db.commit()
     db.refresh(new_blog)
